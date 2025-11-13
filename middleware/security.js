@@ -40,10 +40,10 @@ const apiRateLimiter = rateLimit({
 const allowedOrigins = [
   "http://localhost:5173", // Vite frontend (development)
   "http://localhost:4000", // backend self-requests (needed for CSP)
-  "https://gracerouteltd.com", // production domain
-  "https://www.gracerouteltd.com", // www alias
-  "https://grace-route-frontend.vercel.app", // vercel preview/staging
-  "https://grace-route-real-estate-company.onrender.com", // render backend origin
+  "https://tehlex.co", // production domain
+  "https://www.tehlex.co", // www alias
+  "https://lush-estate.vercel.app", // vercel preview/staging
+  "https://lush-estate-backend.onrender.com", // render backend origin
 ];
 
 const corsOptions = {
@@ -139,9 +139,9 @@ function applySecurity(app) {
         defaultSrc: ["'self'"],
         scriptSrc: [
           "'self'",
-          "https://gracerouteltd.com",
-          "https://www.gracerouteltd.com",
-          "https://grace-route-frontend.vercel.app",
+          "https://tehlex.co",
+          "https://www.tehlex.co",
+          "https://lush-estate.vercel.app",
           "https://cdn.jsdelivr.net",
         ],
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
@@ -151,10 +151,10 @@ function applySecurity(app) {
           "'self'",
           "http://localhost:5173",
           "http://localhost:4000",
-          "https://gracerouteltd.com",
-          "https://www.gracerouteltd.com",
-          "https://grace-route-frontend.vercel.app",
-          "https://grace-route-real-estate-company.onrender.com", // backend Render URL
+          "https://tehlex.co",
+          "https://www.tehlex.co",
+          "https://lush-estate.vercel.app",
+          "https://lush-estate-backend.onrender.com", // backend Render URL
         ],
         objectSrc: ["'none'"],
         upgradeInsecureRequests: [],
