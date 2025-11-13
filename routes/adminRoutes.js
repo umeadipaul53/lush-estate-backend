@@ -1,0 +1,35 @@
+const express = require("express");
+const admin = express.Router();
+const validateEstate = require("../validators/estateValidator");
+const createEstate = require("../controller/createEstateController");
+const authorizeRoles = require("../middleware/role");
+const authenticateToken = require("../middleware/auth");
+const validate = require("../middleware/validate");
+const adminLogin = require("../controller/loginController");
+const validateLogin = require("../validators/loginValidator");
+const createStep = require("../controller/createStepsController");
+const createQuestion = require("../controller/createQuestionaireController");
+const questionSchema = require("../validators/questionireValidator");
+
+admin.route("/login").post(validate(validateLogin), adminLogin);
+admin
+  .route("/create-estate")
+  .post(
+    authenticateToken,
+    authorizeRoles("admin"),
+    validate(validateEstate),
+    createEstate
+  );
+admin
+  .route("/create-steps")
+  .post(authenticateToken, authorizeRoles("admin"), createStep);
+admin
+  .route("/add-questionaire")
+  .post(
+    authenticateToken,
+    authorizeRoles("admin"),
+    validate(questionSchema),
+    createQuestion
+  );
+
+module.exports = admin;
