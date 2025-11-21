@@ -25,29 +25,43 @@ const answerQuestionaire = async (req, res, next) => {
     const user = await userModel.findById(userId);
     if (!user) return next(new AppError("Account not found", 404));
 
+    // Fetch all questions at once
+    const questions = await questionaireModel.find({
+      _id: { $in: questionsIdArray },
+    });
+
+    if (questions.length !== questionsIdArray.length) {
+      return next(new AppError("One or more questions not found", 404));
+    }
+
     const responses = [];
+    let totalScore = 0;
 
     for (let i = 0; i < questionsIdArray.length; i++) {
       const questionId = questionsIdArray[i];
-      const selectedAnswer = answersArray[i];
+      const selectedAnswerText = answersArray[i].text;
 
-      // Fetch the question
-      const question = await questionaireModel.findById(questionId);
-      if (!question) {
-        return next(
-          new AppError(`Question with ID ${questionId} not found`, 404)
-        );
-      }
+      const question = questions.find((q) => q._id.toString() === questionId);
 
-      // Validate that the selected answer is one of the available options
-      if (!question.options.includes(selectedAnswer)) {
+      const matchedOption = question.options.find(
+        (opt) => opt.text === selectedAnswerText
+      );
+
+      if (!matchedOption) {
         return next(
           new AppError(
-            `Invalid answer for question "${question.questionText}". Selected answer "${selectedAnswer}" is not among the valid options.`,
+            `Invalid answer for question "${question.questionText}". Selected answer "${selectedAnswerText}" is not among the valid options.`,
             400
           )
         );
       }
+
+      const selectedAnswer = {
+        text: matchedOption.text,
+        points: matchedOption.points,
+      };
+
+      totalScore += matchedOption.points;
 
       responses.push({
         questionId,
@@ -56,10 +70,11 @@ const answerQuestionaire = async (req, res, next) => {
     }
 
     // Save or update user responses in userQuestionaire
-    const saved = await userQuestionaire.create({
-      userId,
-      responses,
-    });
+    const saved = await userQuestionaire.findOneAndUpdate(
+      { userId },
+      { responses, totalScore },
+      { new: true, upsert: true }
+    );
 
     user.queStatus = "completed";
     await user.save();
@@ -68,6 +83,7 @@ const answerQuestionaire = async (req, res, next) => {
       status: "success",
       message: "Answers submitted successfully",
       data: saved,
+      totalScore,
     });
   } catch (error) {
     next(error);

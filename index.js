@@ -17,6 +17,11 @@ applySecurity(app);
 // Logging
 app.use(morgan(isProduction ? "combined" : "dev"));
 
+app.use(
+  "/webhooks",
+  express.raw({ type: "application/json" }) // raw body for signature check
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -28,6 +33,7 @@ app.set("trust proxy", 1);
 const authRoutes = require("./routes/authRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const userRoutes = require("./routes/userRoutes");
+const webhookRoutes = require("./routes/webhookRoutes");
 
 app.get("/", (req, res) => {
   res
@@ -38,6 +44,7 @@ app.get("/", (req, res) => {
 app.use("/api/auth/v1", authRoutes);
 app.use("/api/admin/v1", adminRoutes);
 app.use("/api/user/v1", userRoutes);
+app.use("/webhooks", webhookRoutes);
 
 //404 handler
 app.use((req, res, next) => {

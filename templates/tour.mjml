@@ -1,0 +1,130 @@
+<mjml>
+  <mj-head>
+    <mj-preview>{{ subject }}</mj-preview>
+
+    <mj-font
+      name="Inter"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+    />
+
+    <mj-attributes>
+      <mj-all font-family="Inter, Arial, sans-serif" />
+      <mj-text color="#1f2937" font-size="16px" line-height="1.7" />
+      <mj-button
+        background-color="#171817ff"
+        color="#ffffff"
+        font-size="16px"
+        border-radius="8px"
+        padding="14px 30px"
+        font-weight="600"
+      />
+    </mj-attributes>
+
+    <mj-style inline="inline">
+      .footer-link a {
+        color: #0c100eff !important;
+        text-decoration: none;
+      }
+      .footer-link a:hover {
+        text-decoration: underline;
+      }
+    </mj-style>
+  </mj-head>
+
+  <mj-body background-color="#f9fafb">
+    <!-- HEADER -->
+    <mj-section
+      background-color="#ffffff"
+      padding="25px 0"
+      border-bottom="1px solid #e5e7eb"
+    >
+      <mj-column>
+        <mj-image
+          width="160px"
+          src="https://www.tehlex.co/images/logo.png"
+          alt="Tehlex Logo"
+          align="center"
+        />
+      </mj-column>
+    </mj-section>
+
+    <!-- HERO -->
+    <mj-section background-color="#000" padding="50px 20px 30px 20px">
+      <mj-column>
+        <mj-text
+          align="center"
+          color="#ffffff"
+          font-size="24px"
+          font-weight="700"
+        >
+          {{ subject }}
+        </mj-text>
+
+        <mj-text
+          align="center"
+          color="#f3f6f4ff"
+          font-size="15px"
+          padding-top="10px"
+        >
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- MAIN CONTENT -->
+    <mj-section background-color="#ffffff" padding="35px 25px">
+      <mj-column>
+        <mj-text font-size="18px" font-weight="600" color="#111827">
+          Hello Tehlex,
+        </mj-text>
+
+        <mj-text padding-top="10px">
+          <p>You have a tour request with the below details</p>
+        </mj-text>
+        <mj-text padding-top="10px">
+          <strong>Client's name:</strong> {{ name }}
+          <br />
+          <strong>Email:</strong> {{ email }}
+          <br />
+          <strong>Phone:</strong> {{ phone }}
+          <br />
+          <strong>Tour Date:</strong> {{ date }}
+          <br />
+          <strong>Time:</strong> {{ time }}
+        </mj-text>
+
+        <mj-text padding-top="20px">
+          Best regards,<br />
+          <strong>Tehlex Team</strong>
+        </mj-text>
+
+        <mj-button
+          href="https://www.tehlex.co"
+          align="center"
+          padding-top="25px"
+        >
+          Visit Our Website
+        </mj-button>
+      </mj-column>
+    </mj-section>
+
+    <!-- FOOTER -->
+    <mj-section background-color="#111827" padding="30px 0 20px 0">
+      <mj-column>
+        <mj-text align="center" color="#e5e7eb" font-size="13px">
+          © {{ year }} Tehlex. All rights reserved.
+        </mj-text>
+
+        <mj-text
+          align="center"
+          color="#9ca3af"
+          font-size="12px"
+          css-class="footer-link"
+          padding-top="5px"
+        >
+          <a href="https://www.tehlex.co">Website</a> •
+          <a href="mailto:info@tehlex.co">Support</a>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

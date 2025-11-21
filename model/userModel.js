@@ -2,6 +2,11 @@ const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
   {
+    sytemapUserId: {
+      type: Number,
+      unique: true,
+      sparse: true,
+    },
     name: {
       type: String,
     },

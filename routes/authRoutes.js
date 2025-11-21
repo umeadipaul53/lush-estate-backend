@@ -18,6 +18,8 @@ const refreshToken = require("../controller/refreshTokenController");
 const fetchAllEstates = require("../controller/fetchAllEstates");
 const fetchAllPlots = require("../controller/fetchAllPlots");
 const fetchAllQuestions = require("../controller/fetchAllQuestions");
+const createTourRequest = require("../controller/tourRequestController");
+const tourRequestValidation = require("../validators/tourValidator");
 
 auth.route("/refresh-token").post(refreshToken);
 auth.route("/start-client-journey").post(startJourney);
@@ -64,5 +66,13 @@ auth
 auth
   .route("/fetch-all-questions")
   .get(authenticateToken, authorizeRoles("user"), fetchAllQuestions);
+auth
+  .route("/request-tour")
+  .post(
+    authenticateToken,
+    authorizeRoles("user"),
+    validate(tourRequestValidation),
+    createTourRequest
+  );
 
 module.exports = auth;

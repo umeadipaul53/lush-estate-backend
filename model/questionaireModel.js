@@ -3,7 +3,12 @@ const mongoose = require("mongoose");
 const questionaireSchema = new mongoose.Schema(
   {
     questionText: { type: String, required: true },
-    options: [{ type: String }], // e.g. ["A", "B", "C", "D"]
+    options: [
+      {
+        text: { type: String, required: true }, // e.g. "Option A"
+        points: { type: Number, required: true }, // e.g. 10 points
+      },
+    ],
   },
   {
     timestamps: true,
