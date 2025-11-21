@@ -44,6 +44,7 @@ const allowedOrigins = [
   "https://www.tehlex.co", // www alias
   "https://lush-estate.vercel.app", // vercel preview/staging
   "https://lush-estate-backend.onrender.com", // render backend origin
+  "https://backend.tehlex.co",
 ];
 
 const corsOptions = {
@@ -155,6 +156,7 @@ function applySecurity(app) {
           "https://www.tehlex.co",
           "https://lush-estate.vercel.app",
           "https://lush-estate-backend.onrender.com", // backend Render URL
+          "https://backend.tehlex.co",
         ],
         objectSrc: ["'none'"],
         upgradeInsecureRequests: [],
