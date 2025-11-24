@@ -1,5 +1,6 @@
 const AppError = require("../../utils/AppError");
 const userModel = require("../../model/userModel");
+const estateModel = require("../../model/estateModel");
 
 const signup = async (req, res, next) => {
   try {

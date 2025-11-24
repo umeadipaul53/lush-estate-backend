@@ -1,7 +1,6 @@
 const userModel = require("../model/userModel");
 const { stepModel, userStepProgressModel } = require("../model/stepModel");
 const AppError = require("../utils/AppError");
-const { estateModel } = require("../model/estateModel");
 
 const completeStep = async (req, res, next) => {
   try {
@@ -20,22 +19,7 @@ const completeStep = async (req, res, next) => {
     const user = await userModel.findOne({ email });
     if (!user) return next(new AppError("User not found", 404));
 
-    // 5️⃣ GET CURRENT STEP FOR THIS ESTATE
-    const foundCurrent = user.currentSteps.find(
-      (item) => item.estateId.toString() === estateId
-    );
-
-    if (!foundCurrent)
-      return next(new AppError("Estate current step not found for user", 404));
-
-    const estateIdValue = foundCurrent?.estateId;
-    const currentStepValue = foundCurrent?.currentStep;
-    const stepStatusValue = foundCurrent?.stepStatus;
-
-    const estate = await estateModel.findById(estateId);
-    if (!estate) return next(new AppError("Estate doesnt exist", 404));
-
-    const step = estate.steps.find((s) => s.stepNumber === stepNumber);
+    const step = await stepModel.findOne({ stepNumber });
     if (!step) return next(new AppError(`Step ${stepNumber} not found`, 404));
 
     // Find or create user progress for this estate
@@ -54,7 +38,7 @@ const completeStep = async (req, res, next) => {
 
     // Check if this step is already completed
     const alreadyCompleted = progress.completedSteps.some(
-      (s) => s.step === stepNumber
+      (s) => s.step.toString() === step._id.toString()
     );
 
     if (alreadyCompleted) {
@@ -63,32 +47,31 @@ const completeStep = async (req, res, next) => {
         message: `Step ${stepNumber} already completed.`,
         data: {
           nextStep:
-            currentStepValue <= stepNumber ? stepNumber + 1 : currentStepValue,
-          finalStep: stepStatusValue === "completed",
+            user.currentStep <= stepNumber ? stepNumber + 1 : user.currentStep,
+          finalStep: user.stepStatus === "completed",
         },
       });
     }
 
     // Prevent skipping steps
-    if (currentStepValue !== stepNumber) {
+    if (user.currentStep !== stepNumber) {
       return next(
-        new AppError(`You must complete step ${stepStatusValue} first.`, 400)
+        new AppError(`You must complete step ${user.currentStep} first.`, 400)
       );
     }
 
     // Mark this step as completed
     progress.completedSteps.push({
-      step: stepNumber,
+      step: step._id,
       completedAt: new Date(),
     });
     await progress.save();
 
     // Move to the next step
-    const newStep = stepNumber + 1;
-    const nextStep = estate.steps.find((s) => s.stepNumber === newStep);
+    const nextStep = await stepModel.findOne({ stepNumber: stepNumber + 1 });
 
     if (nextStep) {
-      currentStepValue = nextStep.stepNumber;
+      user.currentStep = nextStep.stepNumber;
       await user.save();
 
       return res.status(201).json({
@@ -102,8 +85,8 @@ const completeStep = async (req, res, next) => {
     }
 
     // No more steps — journey completed
-    currentStepValue = stepNumber;
-    stepStatusValue = "completed";
+    user.currentStep = stepNumber;
+    user.stepStatus = "completed";
     await user.save();
 
     return res.status(200).json({

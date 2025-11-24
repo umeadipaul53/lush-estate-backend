@@ -15,25 +15,33 @@ const userSchema = new mongoose.Schema(
     },
     email: { type: String, required: true, unique: true },
     password: { type: String },
-    stepStatus: {
-      type: String,
-      required: true,
-      enum: ["completed", "pending"],
-      default: "pending",
-    },
-    reserveStatus: {
-      type: String,
-      required: true,
-      enum: ["completed", "pending"],
-      default: "pending",
-    },
-    queStatus: {
-      type: String,
-      required: true,
-      enum: ["completed", "pending"],
-      default: "pending",
-    },
-    currentStep: { type: Number, default: 1 }, // Tracks progress
+    currentSteps: [
+      {
+        estateId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Estate",
+          required: true,
+        },
+        currentStep: { type: Number, default: 1 }, // Tracks progress
+        stepStatus: {
+          type: String,
+          enum: ["completed", "pending"],
+          default: "pending",
+        },
+        queStatus: {
+          type: String,
+          enum: ["completed", "pending"],
+          default: "pending",
+        },
+        status: {
+          type: String,
+          required: true,
+          enum: ["active", "pending"],
+          default: "pending",
+        },
+      },
+    ],
+
     role: {
       type: String,
       required: true,

@@ -1,36 +1,52 @@
+const mongoose = require("mongoose");
 const userModel = require("../model/userModel");
 const crypto = require("crypto");
-const { stepModel } = require("../model/stepModel");
 const tokenModel = require("../model/tokenModel");
 const {
   generateAccessToken,
   generateRefreshToken,
 } = require("../middleware/tokens");
 const AppError = require("../utils/AppError");
+const { estateModel } = require("../model/estateModel");
 
 const isProduction = process.env.NODE_ENV === "production";
 
 const startJourney = async (req, res, next) => {
   try {
-    const { email, name, phone } = req.body;
+    const { estateId, email, name, phone } = req.body;
 
     if (!email) return next(new AppError("Email is required", 400));
+    if (!estateId) return next(new AppError("Estate ID is required", 400));
+
+    // Validate estateId type
+    if (!mongoose.Types.ObjectId.isValid(estateId)) {
+      return next(new AppError("Invalid estateId", 400));
+    }
 
     let user = await userModel.findOne({ email });
     let isNewUser = false;
 
-    // 🧩 If user doesn’t exist → create it
+    // 1️⃣ CREATE USER IF NOT EXIST
     if (!user) {
       user = await userModel.create({
         email,
         name: name || "",
         phone: phone || "",
-        currentStep: 1,
+        currentSteps: [
+          {
+            estateId,
+            currentStep: 1,
+            stepStatus: "pending",
+            queStatus: "pending",
+            status: "pending",
+          },
+        ],
       });
       isNewUser = true;
-    } else if (name && phone) {
-      // 🧩 If user exists and frontend sent name + phone → update details
+    }
 
+    // 2️⃣ UPDATE USER DETAILS IF PROVIDED
+    else if (name && phone) {
       if (phone !== user.phone) {
         const existingPhone = await userModel.findOne({ phone });
         if (existingPhone) {
@@ -43,7 +59,23 @@ const startJourney = async (req, res, next) => {
       await user.save();
     }
 
-    // 🔐 Generate tokens
+    // 3️⃣ CHECK IF estateId ALREADY EXISTS IN user.currentSteps
+    const hasEstate = user.currentSteps.some(
+      (item) => item.estateId.toString() === estateId
+    );
+
+    if (!hasEstate) {
+      user.currentSteps.push({
+        estateId,
+        currentStep: 1,
+        stepStatus: "pending",
+        queStatus: "pending",
+        status: "pending",
+      });
+      await user.save();
+    }
+
+    // 4️⃣ CREATE TOKENS
     const tokenId = crypto.randomUUID();
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user, tokenId);
@@ -62,28 +94,21 @@ const startJourney = async (req, res, next) => {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
-    // 🧩 Get current step
-    const step = await stepModel.findOne({ stepNumber: user.currentStep });
+    // 5️⃣ GET CURRENT STEP FOR THIS ESTATE
+    const foundCurrent = user.currentSteps.find(
+      (item) => item.estateId.toString() === estateId
+    );
+
+    const userCurrentStep = foundCurrent ? foundCurrent.currentStep : 1;
+
+    // 6️⃣ FETCH THE ESTATE
+    const estate = await estateModel.findById(estateId);
+    if (!estate) return next(new AppError("Estate not found", 404));
+
+    // 7️⃣ FIND THE STEP INSIDE estate.steps
+    const step = estate.steps.find((s) => s.stepNumber === userCurrentStep);
+
     if (!step) return next(new AppError("Step not found", 404));
-
-    // 🧭 Build journey response flags
-    let isStep = false;
-    let isReserve = false;
-    let isQuestion = false;
-
-    if (user.queStatus === "completed") {
-      isStep = true;
-      isReserve = true;
-      isQuestion = true;
-    } else if (user.reserveStatus === "completed") {
-      isStep = true;
-      isReserve = true;
-      isQuestion = false;
-    } else if (user.stepStatus === "completed") {
-      isStep = true;
-      isReserve = false;
-      isQuestion = false;
-    }
 
     return res.status(200).json({
       message: `Welcome ${user.name || ""}`,
@@ -92,9 +117,6 @@ const startJourney = async (req, res, next) => {
         email: user.email,
         name: user.name,
         role: user.role,
-        isStep,
-        isReserve,
-        isQuestion,
         step,
         isNewUser,
       },

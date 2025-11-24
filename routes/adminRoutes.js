@@ -1,7 +1,11 @@
 const express = require("express");
 const admin = express.Router();
 const validateEstate = require("../validators/estateValidator");
-const createEstate = require("../controller/createEstateController");
+const {
+  createEstate,
+  getEstate,
+  getAllEstates,
+} = require("../controller/createEstateController");
 const authorizeRoles = require("../middleware/role");
 const authenticateToken = require("../middleware/auth");
 const validate = require("../middleware/validate");
@@ -14,15 +18,8 @@ const questionSchema = require("../validators/questionireValidator");
 admin.route("/login").post(validate(validateLogin), adminLogin);
 admin
   .route("/create-estate")
-  .post(
-    authenticateToken,
-    authorizeRoles("admin"),
-    validate(validateEstate),
-    createEstate
-  );
-admin
-  .route("/create-steps")
-  .post(authenticateToken, authorizeRoles("admin"), createStep);
+  .post(authenticateToken, authorizeRoles("admin"), createEstate);
+
 admin
   .route("/add-questionaire")
   .post(

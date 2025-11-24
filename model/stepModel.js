@@ -1,25 +1,5 @@
 const mongoose = require("mongoose");
 
-const stepSchema = new mongoose.Schema(
-  {
-    stepNumber: { type: Number, unique: true },
-  },
-  { timestamps: true }
-);
-
-stepSchema.pre("save", async function (next) {
-  if (this.isNew && !this.stepNumber) {
-    const lastStep = await mongoose
-      .model("steps")
-      .findOne()
-      .sort({ stepNumber: -1 });
-    this.stepNumber = lastStep ? lastStep.stepNumber + 1 : 1;
-  }
-  next();
-});
-
-const stepModel = mongoose.model("steps", stepSchema);
-
 const userStepProgressSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: "user", required: true },
@@ -31,7 +11,7 @@ const userStepProgressSchema = new mongoose.Schema(
     },
     completedSteps: [
       {
-        step: { type: mongoose.Schema.Types.ObjectId, ref: "steps" },
+        step: { type: Number, required: true },
         completedAt: { type: Date, default: Date.now },
       },
     ],
@@ -46,4 +26,4 @@ const userStepProgressModel = mongoose.model(
   userStepProgressSchema
 );
 
-module.exports = { stepModel, userStepProgressModel };
+module.exports = { userStepProgressModel };

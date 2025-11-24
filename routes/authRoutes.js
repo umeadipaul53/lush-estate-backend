@@ -4,6 +4,7 @@ const authorizeRoles = require("../middleware/role");
 const authenticateToken = require("../middleware/auth");
 const validate = require("../middleware/validate");
 const startJourney = require("../controller/startController");
+const startJourneyValidator = require("../validators/startJourneyValidator");
 const completeStep = require("../controller/completeStepController");
 const submitStepSchema = require("../validators/completeStepValidator");
 const plotReservation = require("../controller/plotReservationController");
@@ -22,7 +23,9 @@ const createTourRequest = require("../controller/tourRequestController");
 const tourRequestValidation = require("../validators/tourValidator");
 
 auth.route("/refresh-token").post(refreshToken);
-auth.route("/start-client-journey").post(startJourney);
+auth
+  .route("/start-client-journey")
+  .post(validate(startJourneyValidator), startJourney);
 auth.route("/login").post(validate(validateLogin), adminLogin);
 auth.route("/complete-client-journey/:stepNumber").post(
   authenticateToken,

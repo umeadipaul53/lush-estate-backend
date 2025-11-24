@@ -1,85 +1,67 @@
 const mongoose = require("mongoose");
 
-// --- Plot Schema ---
-const plotSchema = new mongoose.Schema(
-  {
-    estate: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Estate",
-      required: true,
-    },
-    plotNumber: {
-      type: Number,
-      required: true,
-    },
-    buyer: {
-      userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "user",
-        default: null,
-      },
-      name: { type: String, default: null },
-      phone: { type: String, default: null },
-      email: { type: String, default: null },
-      address: { type: String, default: null },
-      paymentPlan: {
-        type: String,
-        enum: ["Full Payment", "3 months", "6 months", "12 months"],
-        default: null,
-      },
-    },
-    plotSize: {
-      type: Number,
-      default: null,
-    },
-    price: {
-      type: Number,
-      default: null,
-    },
-    status: {
-      type: String,
-      enum: ["available", "reserved", "sold"],
-      default: "available",
-    },
-  },
-  { timestamps: true }
-);
-
-const plotModel = mongoose.model("Plot", plotSchema);
-
-// --- Estate Schema ---
-const estateSchema = new mongoose.Schema(
-  {
-    name: {
-      type: String,
-      required: true,
-      unique: true,
-      trim: true,
-    },
-    numberOfPlots: {
-      type: Number,
-      required: true,
-      min: 1,
-    },
-  },
-  { timestamps: true }
-);
-
-// --- Auto-generate plots after estate is saved ---
-estateSchema.post("save", async function (doc, next) {
-  try {
-    const plots = [];
-    for (let i = 1; i <= doc.numberOfPlots; i++) {
-      plots.push({ estate: doc._id, plotNumber: i });
-    }
-    await plotModel.insertMany(plots);
-    next();
-  } catch (err) {
-    console.error("Error generating plots:", err);
-    next(err);
-  }
+const faqQuestionSchema = new mongoose.Schema({
+  heading: String,
+  description: String,
+  video: String,
 });
 
-const estateModel = mongoose.model("Estate", estateSchema);
+const pastProjectSchema = new mongoose.Schema({
+  beforeImage: String,
+  afterImage: String,
+});
 
-module.exports = { estateModel, plotModel };
+const testimonialSchema = new mongoose.Schema({
+  name: String,
+  text: String,
+  video: String,
+});
+
+// Dynamic “data” object depending on the stepType
+const stepSchema = new mongoose.Schema(
+  {
+    stepType: {
+      type: String,
+      enum: [
+        "whyEstate",
+        "virtualInspection",
+        "trustCredibility",
+        "faq",
+        "featuresAmenities",
+        "locationAdvantage",
+      ],
+      required: true,
+    },
+    stepNumber: { type: Number, required: true },
+
+    data: {
+      heading: String,
+      description: String,
+      video: String,
+
+      // Specific to virtualInspection & locationAdvantage
+      mapUrl: String,
+
+      // Step 3 fields
+      certificates: [String],
+      pastProjects: [pastProjectSchema],
+      testimonials: [testimonialSchema],
+      awards: [String],
+
+      // Step 4 fields
+      questions: [faqQuestionSchema],
+    },
+  },
+  { timestamps: true }
+);
+
+const estateSchema = new mongoose.Schema(
+  {
+    estateName: { type: String, required: true, unique: true },
+    steps: [stepSchema],
+  },
+  { timestamps: true }
+);
+
+const estateModel = mongoose.model("Estate", estateSchema);
+module.exports = { estateModel };
