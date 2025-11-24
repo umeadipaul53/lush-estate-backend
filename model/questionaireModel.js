@@ -2,6 +2,11 @@ const mongoose = require("mongoose");
 
 const questionaireSchema = new mongoose.Schema(
   {
+    estateId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Estate",
+      required: true,
+    },
     questionText: { type: String, required: true },
     options: [
       {

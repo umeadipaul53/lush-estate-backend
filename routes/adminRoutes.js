@@ -11,7 +11,6 @@ const authenticateToken = require("../middleware/auth");
 const validate = require("../middleware/validate");
 const adminLogin = require("../controller/loginController");
 const validateLogin = require("../validators/loginValidator");
-const createStep = require("../controller/createStepsController");
 const createQuestion = require("../controller/createQuestionaireController");
 const questionSchema = require("../validators/questionireValidator");
 

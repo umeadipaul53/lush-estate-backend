@@ -7,84 +7,92 @@ const payment = async (req, res, next) => {
     const payload = req.body;
     console.log("SYTEMAP Payment Webhook:", payload);
 
-    const {
-      PropertyId,
-      UserId: sytemapUserId,
-      TransactionId,
-      AmountPaid,
-      PaymentCurrency,
-      PaymentMode,
-    } = payload;
+    // const body = req.body;
 
-    // 🔍 Validate essential fields
-    if (!PropertyId || !sytemapUserId || !TransactionId) {
-      return next(new AppError("Invalid payload", 400));
-    }
+    // console.log("SYTEMAP Signup Webhook:", Payload);
+    console.log("====== SYTEMAP WEBHOOK RECEIVED ======");
+    console.log("Headers:", req.headers);
+    console.log("Body:", req.body); // <--- THIS SHOWS THE EXACT PAYLOAD
+    console.log("=======================================");
 
-    // 🔍 Check if user exists
-    const user = await userModel.findOne({ sytemapUserId });
-    if (!user) return next(new AppError("UserId does not exist", 400));
+    // const {
+    //   PropertyId,
+    //   UserId: sytemapUserId,
+    //   TransactionId,
+    //   AmountPaid,
+    //   PaymentCurrency,
+    //   PaymentMode,
+    // } = payload;
 
-    // ---------------------------------------------------
-    // 🔥 FIND EXISTING PAYMENT RECORD (FAST due to indexes)
-    // ---------------------------------------------------
-    let paymentDoc = await paymentModel.findOne({
-      sytemapUserId,
-      PropertyId,
-    });
+    // // 🔍 Validate essential fields
+    // if (!PropertyId || !sytemapUserId || !TransactionId) {
+    //   return next(new AppError("Invalid payload", 400));
+    // }
 
-    // ===================================================
-    //     CASE 1: PAYMENT RECORD ALREADY EXISTS
-    // ===================================================
-    if (paymentDoc) {
-      console.log("➡ Updating existing payment entry...");
+    // // 🔍 Check if user exists
+    // const user = await userModel.findOne({ sytemapUserId });
+    // if (!user) return next(new AppError("UserId does not exist", 400));
 
-      // Prevent duplicate TransactionId inside payments[]
-      const alreadyExists = paymentDoc.payments.some(
-        (p) => p.TransactionId === TransactionId
-      );
+    // // ---------------------------------------------------
+    // // 🔥 FIND EXISTING PAYMENT RECORD (FAST due to indexes)
+    // // ---------------------------------------------------
+    // let paymentDoc = await paymentModel.findOne({
+    //   sytemapUserId,
+    //   PropertyId,
+    // });
 
-      if (!alreadyExists) {
-        paymentDoc.payments.push({
-          TransactionId,
-          AmountPaid,
-          PaymentCurrency,
-          PaymentMode,
-        });
+    // // ===================================================
+    // //     CASE 1: PAYMENT RECORD ALREADY EXISTS
+    // // ===================================================
+    // if (paymentDoc) {
+    //   console.log("➡ Updating existing payment entry...");
 
-        await paymentDoc.save();
-      }
+    //   // Prevent duplicate TransactionId inside payments[]
+    //   const alreadyExists = paymentDoc.payments.some(
+    //     (p) => p.TransactionId === TransactionId
+    //   );
 
-      return res.status(200).json({ status: "ok", exists: true });
-    }
+    //   if (!alreadyExists) {
+    //     paymentDoc.payments.push({
+    //       TransactionId,
+    //       AmountPaid,
+    //       PaymentCurrency,
+    //       PaymentMode,
+    //     });
 
-    // ===================================================
-    //     CASE 2: CREATE NEW PAYMENT DOCUMENT
-    // ===================================================
-    console.log("🆕 Creating new payment record...");
+    //     await paymentDoc.save();
+    //   }
 
-    await paymentModel.create({
-      userId: user._id,
-      PropertyName: payload.PropertyName,
-      PropertyId: payload.PropertyId,
-      EstateName: payload.EstateName,
-      EstateId: payload.EstateId,
-      AmountPending: payload.AmountPending,
-      PropertyPrice: payload.PropertyPrice,
-      NumberOfProperty: payload.NumberOfProperty,
-      AccountStatus: payload.AccountStatus,
-      PaymentType: payload.PaymentType,
-      sytemapUserId,
+    //   return res.status(200).json({ status: "ok", exists: true });
+    // }
 
-      payments: [
-        {
-          TransactionId,
-          AmountPaid,
-          PaymentCurrency,
-          PaymentMode,
-        },
-      ],
-    });
+    // // ===================================================
+    // //     CASE 2: CREATE NEW PAYMENT DOCUMENT
+    // // ===================================================
+    // console.log("🆕 Creating new payment record...");
+
+    // await paymentModel.create({
+    //   userId: user._id,
+    //   PropertyName: payload.PropertyName,
+    //   PropertyId: payload.PropertyId,
+    //   EstateName: payload.EstateName,
+    //   EstateId: payload.EstateId,
+    //   AmountPending: payload.AmountPending,
+    //   PropertyPrice: payload.PropertyPrice,
+    //   NumberOfProperty: payload.NumberOfProperty,
+    //   AccountStatus: payload.AccountStatus,
+    //   PaymentType: payload.PaymentType,
+    //   sytemapUserId,
+
+    //   payments: [
+    //     {
+    //       TransactionId,
+    //       AmountPaid,
+    //       PaymentCurrency,
+    //       PaymentMode,
+    //     },
+    //   ],
+    // });
 
     return res.status(200).json({ status: "ok" });
   } catch (error) {

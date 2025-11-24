@@ -1,19 +1,22 @@
-const { stepModel } = require("../model/stepModel");
+const { estateModel } = require("../model/estateModel");
 const AppError = require("../utils/AppError");
 
 const fetchAllStep = async (req, res, next) => {
   try {
-    const steps = await stepModel.find();
+    const { estateId } = req.params; // FIXED
 
-    if (steps.length === 0) {
-      return next(new AppError("No steps found", 404));
+    const estate = await estateModel.findById(estateId);
+    if (!estate) return next(new AppError("Estate not found", 404));
+
+    if (!estate.steps || estate.steps.length === 0) {
+      return next(new AppError("No steps found for this estate", 404));
     }
 
     res.status(200).json({
       message: "All steps fetched successfully",
       data: {
-        totalSteps: steps.length,
-        steps, // return all steps
+        totalSteps: estate.steps.length,
+        steps: estate.steps,
       },
     });
   } catch (error) {

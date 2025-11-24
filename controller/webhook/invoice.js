@@ -7,31 +7,37 @@ const invoice = async (req, res, next) => {
     const payload = req.body;
 
     console.log("SYTEMAP Signup Webhook:", payload);
+    // const body = req.body;
 
-    const TransactionId = payload.TransactionId;
+    // console.log("SYTEMAP Signup Webhook:", Payload);
+    console.log("====== SYTEMAP WEBHOOK RECEIVED ======");
+    console.log("Headers:", req.headers);
+    console.log("Body:", req.body); // <--- THIS SHOWS THE EXACT PAYLOAD
+    console.log("=======================================");
+    // const TransactionId = payload.TransactionId;
 
-    const tx = await invoiceModel.findOne({ TransactionId });
+    // const tx = await invoiceModel.findOne({ TransactionId });
 
-    if (tx) {
-      console.log("Duplicate Transaction → Already processed");
-      return res.status(200).json({ status: "duplicate" });
-    }
+    // if (tx) {
+    //   console.log("Duplicate Transaction → Already processed");
+    //   return res.status(200).json({ status: "duplicate" });
+    // }
 
-    let user = null;
+    // let user = null;
 
-    // fetch user sytemap userId
-    if (payload.UserId) {
-      user = await userModel.findOne({ sytemapUserId: payload.UserId });
-    }
+    // // fetch user sytemap userId
+    // if (payload.UserId) {
+    //   user = await userModel.findOne({ sytemapUserId: payload.UserId });
+    // }
 
-    await invoiceModel.create({
-      userId: user?._id || null,
-      PropertyName: payload.PropertyName || "Lush Estate",
-      TransactionId,
-      PropertyPrice: payload.PropertyPrice || 0,
-      sytemapUserId: payload.UserId,
-      rawData: payload,
-    });
+    // await invoiceModel.create({
+    //   userId: user?._id || null,
+    //   PropertyName: payload.PropertyName || "Lush Estate",
+    //   TransactionId,
+    //   PropertyPrice: payload.PropertyPrice || 0,
+    //   sytemapUserId: payload.UserId,
+    //   rawData: payload,
+    // });
 
     // Always respond immediately with 200 so SYTEMAP considers webhook successful
     return res.status(200).json({ status: "ok" });

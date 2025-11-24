@@ -1,6 +1,15 @@
 const Joi = require("joi");
+const mongoose = require("mongoose");
+
+const objectId = (value, helpers) => {
+  if (!mongoose.Types.ObjectId.isValid(value)) {
+    return helpers.error("any.invalid");
+  }
+  return value;
+};
 
 const questionSchema = Joi.object({
+  estateId: Joi.string().custom(objectId).required(),
   questionText: Joi.string().required().messages({
     "string.base": "Question text must be a string",
     "string.empty": "Question text is required",

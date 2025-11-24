@@ -7,6 +7,11 @@ const userQuestionaireSchema = new mongoose.Schema(
       ref: "user",
       required: true,
     },
+    estateId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Estate",
+      required: true,
+    },
     responses: [
       {
         questionId: {

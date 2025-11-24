@@ -7,8 +7,6 @@ const startJourney = require("../controller/startController");
 const startJourneyValidator = require("../validators/startJourneyValidator");
 const completeStep = require("../controller/completeStepController");
 const submitStepSchema = require("../validators/completeStepValidator");
-const plotReservation = require("../controller/plotReservationController");
-const plotReservationSchema = require("../validators/plotReservationValidator");
 const answerQuestionaire = require("../controller/userAnswerQuestionaireController");
 const answerQuestionaireSchema = require("../validators/userQuestionaireValidator");
 const fetchUserStep = require("../controller/userStepController");
@@ -17,7 +15,6 @@ const adminLogin = require("../controller/loginController");
 const validateLogin = require("../validators/loginValidator");
 const refreshToken = require("../controller/refreshTokenController");
 const fetchAllEstates = require("../controller/fetchAllEstates");
-const fetchAllPlots = require("../controller/fetchAllPlots");
 const fetchAllQuestions = require("../controller/fetchAllQuestions");
 const createTourRequest = require("../controller/tourRequestController");
 const tourRequestValidation = require("../validators/tourValidator");
@@ -38,14 +35,7 @@ auth.route("/complete-client-journey/:stepNumber").post(
   validate(submitStepSchema),
   completeStep
 );
-auth
-  .route("/reserve-plot")
-  .patch(
-    authenticateToken,
-    authorizeRoles("user"),
-    validate(plotReservationSchema),
-    plotReservation
-  );
+
 auth
   .route("/answer-questionaire")
   .post(
@@ -63,9 +53,7 @@ auth
 auth
   .route("/fetch-all-estates")
   .get(authenticateToken, authorizeRoles("user"), fetchAllEstates);
-auth
-  .route("/fetch-all-plots")
-  .get(authenticateToken, authorizeRoles("user"), fetchAllPlots);
+
 auth
   .route("/fetch-all-questions")
   .get(authenticateToken, authorizeRoles("user"), fetchAllQuestions);

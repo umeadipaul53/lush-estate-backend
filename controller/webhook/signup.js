@@ -4,7 +4,7 @@ const estateModel = require("../../model/estateModel");
 
 const signup = async (req, res, next) => {
   try {
-    // const Payload = req.body;
+    const body = req.body;
 
     // console.log("SYTEMAP Signup Webhook:", Payload);
     console.log("====== SYTEMAP WEBHOOK RECEIVED ======");
