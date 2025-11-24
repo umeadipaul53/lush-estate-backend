@@ -4,10 +4,13 @@ const estateModel = require("../../model/estateModel");
 
 const signup = async (req, res, next) => {
   try {
-    const payload = req.body;
+    // const Payload = req.body;
 
-    console.log("SYTEMAP Signup Webhook:", payload);
-
+    // console.log("SYTEMAP Signup Webhook:", Payload);
+    console.log("====== SYTEMAP WEBHOOK RECEIVED ======");
+    console.log("Headers:", req.headers);
+    console.log("Body:", req.body); // <--- THIS SHOWS THE EXACT PAYLOAD
+    console.log("=======================================");
     // const name = `${payload.Firstname} ${payload.Lastname}`;
     // const email = payload.Email;
 
@@ -32,7 +35,7 @@ const signup = async (req, res, next) => {
     // }
 
     // Always respond immediately with 200 so SYTEMAP considers webhook successful
-    return res.status(200).json({ status: "ok", data: payload });
+    return res.status(200).json({ status: "ok" });
   } catch (error) {
     console.error("SYTEMAP Signup Webhook Error:", error);
     return next(new AppError("Internal Server Error", 500));
