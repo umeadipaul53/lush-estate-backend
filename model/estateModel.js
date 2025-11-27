@@ -1,23 +1,30 @@
 const mongoose = require("mongoose");
 
 const faqQuestionSchema = new mongoose.Schema({
-  heading: String,
-  description: String,
-  video: String,
+  heading: { type: String, required: true },
+  description: { type: String, required: true },
+
+  // FAQ question video is optional
+  video: { type: [String], default: [] },
 });
 
 const pastProjectSchema = new mongoose.Schema({
-  beforeImage: String,
-  afterImage: String,
+  beforeImage: { type: String, required: true },
+  afterImage: { type: String, required: true },
 });
 
 const testimonialSchema = new mongoose.Schema({
-  name: String,
-  text: String,
-  video: String,
+  name: { type: String, required: true },
+  text: { type: String, required: true },
+
+  // Testimonials MUST have at least 1 video
+  video: {
+    type: [String],
+    required: true,
+    validate: (v) => v.length > 0,
+  },
 });
 
-// Dynamic “data” object depending on the stepType
 const stepSchema = new mongoose.Schema(
   {
     stepType: {
@@ -32,24 +39,26 @@ const stepSchema = new mongoose.Schema(
       ],
       required: true,
     },
+
     stepNumber: { type: Number, required: true },
 
     data: {
-      heading: String,
-      description: String,
-      video: String,
+      heading: { type: String, required: true },
+      description: { type: String, required: true },
 
-      // Specific to virtualInspection & locationAdvantage
-      mapUrl: String,
+      // Step-level video is OPTIONAL, can accept multiple
+      video: { type: [String], default: [] },
 
-      // Step 3 fields
-      certificates: [String],
-      pastProjects: [pastProjectSchema],
-      testimonials: [testimonialSchema],
-      awards: [String],
+      mapUrl: { type: String },
 
-      // Step 4 fields
-      questions: [faqQuestionSchema],
+      // Trust & Credibility
+      certificates: { type: [String], default: [] },
+      pastProjects: { type: [pastProjectSchema], default: [] },
+      testimonials: { type: [testimonialSchema], default: [] },
+      awards: { type: [String], default: [] },
+
+      // FAQ questions
+      questions: { type: [faqQuestionSchema], default: [] },
     },
   },
   { timestamps: true }
@@ -58,7 +67,7 @@ const stepSchema = new mongoose.Schema(
 const estateSchema = new mongoose.Schema(
   {
     estateName: { type: String, required: true, unique: true },
-    steps: [stepSchema],
+    steps: { type: [stepSchema], default: [] },
   },
   { timestamps: true }
 );

@@ -1,13 +1,18 @@
 const Joi = require("joi");
-const objectIdPattern = /^[0-9a-fA-F]{24}$/; // MongoDB ObjectId pattern
+const mongoose = require("mongoose");
+
+const objectId = (value, helpers) => {
+  if (!mongoose.Types.ObjectId.isValid(value)) {
+    return helpers.error("any.invalid");
+  }
+  return value;
+};
 
 const answerQuestionaireSchema = Joi.object({
+  estateId: Joi.string().custom(objectId).required(),
+
   questionsIdArray: Joi.array()
-    .items(
-      Joi.string()
-        .pattern(objectIdPattern)
-        .message("Each question ID must be a valid MongoDB ObjectId")
-    )
+    .items(Joi.string().custom(objectId).required())
     .min(1)
     .required()
     .messages({
@@ -18,15 +23,21 @@ const answerQuestionaireSchema = Joi.object({
 
   answersArray: Joi.array()
     .items(
-      Joi.string()
-        .trim()
-        .min(1)
-        .message("Each answer must be a non-empty string")
+      Joi.object({
+        text: Joi.string().trim().required().messages({
+          "string.empty": "Answer text is required",
+          "any.required": "Answer text is required",
+        }),
+        points: Joi.number().required().messages({
+          "number.base": "Points must be a number",
+          "any.required": "Points are required",
+        }),
+      })
     )
     .min(1)
     .required()
     .messages({
-      "array.base": "answersArray must be an array",
+      "array.base": "answersArray must be an array of objects",
       "array.min": "At least one answer is required",
       "any.required": "answersArray is required",
     }),

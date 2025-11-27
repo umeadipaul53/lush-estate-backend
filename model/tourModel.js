@@ -7,6 +7,11 @@ const tourRequestSchema = new mongoose.Schema(
       ref: "user",
       required: true,
     },
+    estateId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Estate",
+      required: true,
+    },
     name: { type: String, required: true },
     email: { type: String, required: true },
     phone: { type: String, required: true },

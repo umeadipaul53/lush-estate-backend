@@ -1,35 +1,33 @@
 const Joi = require("joi");
 
-// Common fields for all steps
+// Base fields for all steps
 const baseStepFields = {
   heading: Joi.string().required(),
   description: Joi.string().required(),
-  video: Joi.string().uri().optional(),
+
+  // Optional video: string URI or array of URIs
+  video: Joi.alternatives()
+    .try(Joi.string().uri(), Joi.array().items(Joi.string().uri()))
+    .optional(),
 };
 
-// Step 1 & Step 5 share same structure
+// Step-specific schemas
 const stepWhyEstate = Joi.object({
   ...baseStepFields,
-  video: Joi.string().uri().required(),
 });
 
 const stepFeaturesAmenities = Joi.object({
   ...baseStepFields,
-  video: Joi.string().uri().required(),
 });
 
-// Step 2: Virtual Inspection
 const stepVirtualInspection = Joi.object({
   ...baseStepFields,
-  video: Joi.string().uri().required(),
   mapUrl: Joi.string().uri().required(),
 });
 
-// Step 3: Trust & Credibility
 const stepTrustCredibility = Joi.object({
-  ...baseStepFields,
-  certificates: Joi.array().items(Joi.string().uri()).required(),
-
+  ...baseStepFields, // video is optional here
+  certificates: Joi.array().items(Joi.string().uri()).min(1).required(),
   pastProjects: Joi.array()
     .items(
       Joi.object({
@@ -37,43 +35,46 @@ const stepTrustCredibility = Joi.object({
         afterImage: Joi.string().uri().required(),
       })
     )
+    .min(1)
     .required(),
-
   testimonials: Joi.array()
     .items(
       Joi.object({
         name: Joi.string().required(),
         text: Joi.string().required(),
-        video: Joi.string().uri().required(),
+        video: Joi.array().items(Joi.string().uri()).min(1).required(),
       })
     )
+    .min(1)
     .required(),
-
-  awards: Joi.array().items(Joi.string().uri()).required(),
+  awards: Joi.array().items(Joi.string().uri()).min(1).required(),
 });
 
-// Step 4: FAQ
 const stepFaq = Joi.object({
-  ...baseStepFields,
+  ...baseStepFields, // video optional at step-level if needed
   questions: Joi.array()
     .items(
       Joi.object({
         heading: Joi.string().required(),
         description: Joi.string().required(),
-        video: Joi.string().uri().optional(),
+        video: Joi.alternatives()
+          .try(Joi.string().uri(), Joi.array().items(Joi.string().uri()))
+          .optional(),
       })
     )
+    .min(1)
     .required(),
 });
 
-// Step 6: Location Advantage
 const stepLocationAdvantage = Joi.object({
   ...baseStepFields,
+  video: Joi.alternatives()
+    .try(Joi.string().uri(), Joi.array().items(Joi.string().uri()).min(1))
+    .optional(),
   mapUrl: Joi.string().uri().required(),
-  video: Joi.string().uri().required(),
 });
 
-// Validate all steps by type
+// Step wrapper
 const stepSchema = Joi.object({
   stepType: Joi.string()
     .valid(
@@ -85,6 +86,7 @@ const stepSchema = Joi.object({
       "locationAdvantage"
     )
     .required(),
+
   data: Joi.alternatives()
     .conditional("stepType", {
       switch: [
@@ -100,10 +102,15 @@ const stepSchema = Joi.object({
     .required(),
 });
 
-// Estate schema
+// Full estate schema
 const validateEstate = Joi.object({
   estateName: Joi.string().required(),
   steps: Joi.array().items(stepSchema).min(6).required(),
 });
 
-module.exports = validateEstate;
+// Fetch Estate schema
+const validateFetchEstate = Joi.object({
+  estateName: Joi.string().required(),
+});
+
+module.exports = { validateEstate, validateFetchEstate };

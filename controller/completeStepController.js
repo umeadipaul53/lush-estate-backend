@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const userModel = require("../model/userModel");
 const { userStepProgressModel } = require("../model/stepModel");
 const AppError = require("../utils/AppError");
@@ -6,6 +7,7 @@ const { estateModel } = require("../model/estateModel");
 const completeStep = async (req, res, next) => {
   try {
     const stepNumber = Number(req.params.stepNumber);
+
     if (isNaN(stepNumber)) {
       return next(new AppError("Invalid step number", 400));
     }
@@ -14,19 +16,23 @@ const completeStep = async (req, res, next) => {
     const estateId = req.body.estateId;
 
     if (!estateId) {
-      return next(new AppError("estateId is required in request body", 400));
+      return next(new AppError("estateId is required", 400));
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(estateId)) {
+      return next(new AppError("Invalid estateId format", 400));
     }
 
     const user = await userModel.findOne({ email });
     if (!user) return next(new AppError("User not found", 404));
 
-    // 🔎 Find user's progress for this estate
     const foundCurrent = user.currentSteps.find(
-      (item) => item.estateId.toString() === estateId
+      (item) => item.estateId.toString() === estateId.toString()
     );
 
-    if (!foundCurrent)
+    if (!foundCurrent) {
       return next(new AppError("Estate current step not found for user", 404));
+    }
 
     let currentStepValue = foundCurrent.currentStep;
     let stepStatusValue = foundCurrent.stepStatus;
@@ -37,7 +43,6 @@ const completeStep = async (req, res, next) => {
     const step = estate.steps.find((s) => s.stepNumber === stepNumber);
     if (!step) return next(new AppError(`Step ${stepNumber} not found`, 404));
 
-    // 📌 Find or create progress record
     let progress = await userStepProgressModel.findOne({
       user: user._id,
       estate: estateId,
@@ -51,7 +56,6 @@ const completeStep = async (req, res, next) => {
       });
     }
 
-    // Check if already completed
     const alreadyCompleted = progress.completedSteps.some(
       (s) => s.step === stepNumber
     );
@@ -68,26 +72,22 @@ const completeStep = async (req, res, next) => {
       });
     }
 
-    // Prevent skipping steps
     if (currentStepValue !== stepNumber) {
       return next(
         new AppError(`You must complete step ${currentStepValue} first.`, 400)
       );
     }
 
-    // Mark this step as completed
     progress.completedSteps.push({
       step: stepNumber,
       completedAt: new Date(),
     });
     await progress.save();
 
-    // Move to the next step
     const newStep = stepNumber + 1;
     const nextStep = estate.steps.find((s) => s.stepNumber === newStep);
 
     if (nextStep) {
-      // Update user progress
       foundCurrent.currentStep = nextStep.stepNumber;
       foundCurrent.stepStatus = "pending";
       await user.save();
@@ -102,7 +102,6 @@ const completeStep = async (req, res, next) => {
       });
     }
 
-    // No more steps — journey complete
     foundCurrent.currentStep = stepNumber;
     foundCurrent.stepStatus = "completed";
     await user.save();

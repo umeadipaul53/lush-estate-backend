@@ -19,7 +19,8 @@ const userStepProgressSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-userStepProgressSchema.index({ user: 1, step: 1 }, { unique: true }); // ensures one record per step per user
+// Correct index: one record per user per estate
+userStepProgressSchema.index({ user: 1, estate: 1 }, { unique: true });
 
 const userStepProgressModel = mongoose.model(
   "UserStepProgress",

@@ -15,12 +15,25 @@ const questionSchema = Joi.object({
     "string.empty": "Question text is required",
     "any.required": "Question text is required",
   }),
-
-  options: Joi.array().items(Joi.string().trim().required()).min(1).messages({
-    "array.base": "Options must be an array",
-    "array.min": "At least one option is required",
-    "string.empty": "Each option must be a non-empty string",
-  }),
+  options: Joi.array()
+    .items(
+      Joi.object({
+        text: Joi.string().required().messages({
+          "string.empty": "Option text is required",
+          "any.required": "Option text is required",
+        }),
+        points: Joi.number().required().messages({
+          "number.base": "Points must be a number",
+          "any.required": "Points are required",
+        }),
+      })
+    )
+    .min(1)
+    .required()
+    .messages({
+      "array.base": "Options must be an array of objects",
+      "array.min": "At least one option is required",
+    }),
 });
 
 module.exports = questionSchema;

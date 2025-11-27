@@ -1,9 +1,14 @@
+const mongoose = require("mongoose");
 const { estateModel } = require("../model/estateModel");
 const AppError = require("../utils/AppError");
 
 const fetchAllStep = async (req, res, next) => {
   try {
     const { estateId } = req.params; // FIXED
+
+    if (!mongoose.Types.ObjectId.isValid(estateId)) {
+      return next(new AppError("Invalid estateId", 400));
+    }
 
     const estate = await estateModel.findById(estateId);
     if (!estate) return next(new AppError("Estate not found", 404));

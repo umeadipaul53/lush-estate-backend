@@ -4,38 +4,91 @@ const estateModel = require("../../model/estateModel");
 
 const signup = async (req, res, next) => {
   try {
-    const body = req.body;
+    const payload = req.body;
 
-    // console.log("SYTEMAP Signup Webhook:", Payload);
-    console.log("====== SYTEMAP WEBHOOK RECEIVED ======");
+    console.log("====== SYTEMAP SIGNUP WEBHOOK ======");
     console.log("Headers:", req.headers);
-    console.log("Body:", req.body); // <--- THIS SHOWS THE EXACT PAYLOAD
-    console.log("=======================================");
-    // const name = `${payload.Firstname} ${payload.Lastname}`;
-    // const email = payload.Email;
+    console.log("Body:", payload);
+    console.log("=====================================");
 
-    // // Check if user already exists
-    // let user = await userModel.findOne({ email });
+    const name = `${payload.Firstname || ""} ${payload.Lastname || ""}`.trim();
+    const email = payload.Email;
+    const phone = payload.Mobile;
+    const sytemapUserId = payload.BaseUserId || payload.UserId;
 
-    // if (!user) {
-    //   // Create new user
-    //   user = await userModel.create({
-    //     sytemapUserId: payload.BaseUserId,
-    //     name,
-    //     phone: payload.Mobile,
-    //     email,
-    //     currentStep: 1,
-    //   });
-    // } else {
-    //   // If user exists but sytemapUserId missing → update it
-    //   if (!user.sytemapUserId) {
-    //     user.sytemapUserId = payload.BaseUserId;
-    //     await user.save();
-    //   }
-    // }
+    if (!email || !sytemapUserId) {
+      return next(new AppError("Invalid signup payload", 400));
+    }
 
-    // Always respond immediately with 200 so SYTEMAP considers webhook successful
-    return res.status(200).json({ status: "ok" });
+    // Fetch estates once (fast)
+    const estates = await estateModel.find().select("_id estateName");
+
+    if (!estates.length) {
+      return next(
+        new AppError("No estate created at this time, try again later", 404)
+      );
+    }
+
+    // ====================================================
+    // 🔍 CHECK IF USER EXISTS
+    // ====================================================
+    let user = await userModel.findOne({ email });
+
+    // ====================================================
+    //    CASE 1 → CREATE NEW USER
+    // ====================================================
+    if (!user) {
+      console.log("🆕 Creating new user from SYTEMAP...");
+
+      const stepsForAllEstates = estates.map((estate) => ({
+        estateId: estate._id,
+        currentStep: 1,
+        stepStatus: "pending",
+        queStatus: "pending",
+        status: "pending",
+      }));
+
+      await userModel.create({
+        sytemapUserId,
+        name,
+        phone,
+        email,
+        currentSteps: stepsForAllEstates,
+      });
+
+      return res.status(200).json({ status: "ok", created: true });
+    }
+
+    // ====================================================
+    //    CASE 2 → UPDATE EXISTING USER
+    // ====================================================
+    console.log("➡ Updating existing user...");
+
+    // Assign missing sytemapUserId
+    if (!user.sytemapUserId) {
+      user.sytemapUserId = sytemapUserId;
+    }
+
+    // Add any missing estates to user.currentSteps
+    const existingEstateIds = new Set(
+      user.currentSteps.map((cs) => cs.estateId.toString())
+    );
+
+    estates.forEach((estate) => {
+      if (!existingEstateIds.has(estate._id.toString())) {
+        user.currentSteps.push({
+          estateId: estate._id,
+          currentStep: 1,
+          stepStatus: "pending",
+          queStatus: "pending",
+          status: "pending",
+        });
+      }
+    });
+
+    await user.save();
+
+    return res.status(200).json({ status: "ok", updated: true });
   } catch (error) {
     console.error("SYTEMAP Signup Webhook Error:", error);
     return next(new AppError("Internal Server Error", 500));

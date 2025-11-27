@@ -6,14 +6,16 @@ const paymentSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "user",
       required: true,
-      index: true, // 🔥 Fast user lookups
+      index: true,
     },
 
     PropertyName: { type: String, required: true },
+
+    // Store consistently as NUMBER
     PropertyId: {
-      type: String,
+      type: Number,
       required: true,
-      index: true, // 🔥 Speeds up property-based queries
+      index: true,
     },
 
     EstateName: { type: String, required: true },
@@ -28,6 +30,7 @@ const paymentSchema = new mongoose.Schema(
 
     payments: [
       {
+        _id: false,
         TransactionId: { type: String, required: true },
         AmountPaid: { type: Number, required: true },
         PaymentCurrency: { type: String, required: true },
@@ -39,22 +42,17 @@ const paymentSchema = new mongoose.Schema(
     sytemapUserId: {
       type: Number,
       required: true,
-      index: true, // 🔥 Used in most webhook queries
+      index: true,
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
-/**
- * 🔥 Index to prevent duplicate payment entries for same user + property
- * This allows:
- * - same user → multiple payments
- * - same property → multiple users
- * - BUT prevents duplicate "payment record" for same user & property combination
- */
+// Parent record duplicate prevention
 paymentSchema.index({ sytemapUserId: 1, PropertyId: 1 }, { unique: true });
+
+// Speed up searches by TransactionId inside payments[]
+paymentSchema.index({ "payments.TransactionId": 1 });
 
 const paymentModel = mongoose.model("payment", paymentSchema);
 module.exports = paymentModel;

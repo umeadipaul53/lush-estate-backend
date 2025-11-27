@@ -18,8 +18,18 @@ const fetchAllEstates = require("../controller/fetchAllEstates");
 const fetchAllQuestions = require("../controller/fetchAllQuestions");
 const createTourRequest = require("../controller/tourRequestController");
 const tourRequestValidation = require("../validators/tourValidator");
+const {
+  getEstate,
+  getAllEstatesUser,
+} = require("../controller/createEstateController");
+const { validateFetchEstate } = require("../validators/estateValidator");
 
 auth.route("/refresh-token").post(refreshToken);
+auth
+  .route("/fetch-estate/:estateId")
+  .get(validate(validateFetchEstate), getEstate);
+auth.route("/all-estates").get(getAllEstatesUser);
+auth.route("/fetch-all-steps/:estateId").get(fetchAllStep);
 auth
   .route("/start-client-journey")
   .post(validate(startJourneyValidator), startJourney);
@@ -47,15 +57,13 @@ auth
 auth
   .route("/fetch-user-step")
   .get(authenticateToken, authorizeRoles("user"), fetchUserStep);
-auth
-  .route("/fetch-all-steps")
-  .get(authenticateToken, authorizeRoles("user"), fetchAllStep);
+
 auth
   .route("/fetch-all-estates")
   .get(authenticateToken, authorizeRoles("user"), fetchAllEstates);
 
 auth
-  .route("/fetch-all-questions")
+  .route("/fetch-all-questions/:estateId")
   .get(authenticateToken, authorizeRoles("user"), fetchAllQuestions);
 auth
   .route("/request-tour")

@@ -1,6 +1,15 @@
 const Joi = require("joi");
+const mongoose = require("mongoose");
+
+const objectId = (value, helpers) => {
+  if (!mongoose.Types.ObjectId.isValid(value)) {
+    return helpers.error("any.invalid");
+  }
+  return value;
+};
 
 const tourRequestValidation = Joi.object({
+  estateId: Joi.string().custom(objectId).required(),
   date: Joi.date().min("now").required().messages({
     "date.base": "Date must be a valid date",
     "date.min": "Date cannot be in the past",
