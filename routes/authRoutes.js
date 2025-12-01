@@ -23,6 +23,7 @@ const {
   getAllEstatesUser,
 } = require("../controller/createEstateController");
 const { validateFetchEstate } = require("../validators/estateValidator");
+const checkQuestionaireAccess = require("../controller/checkQuestionaireAccess");
 
 auth.route("/refresh-token").post(refreshToken);
 auth
@@ -73,5 +74,8 @@ auth
     validate(tourRequestValidation),
     createTourRequest
   );
+auth
+  .route("/check-questionaire-access/:estateId")
+  .post(authenticateToken, authorizeRoles("user"), checkQuestionaireAccess);
 
 module.exports = auth;

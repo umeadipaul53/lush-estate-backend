@@ -12,7 +12,7 @@ const payment = async (req, res, next) => {
     console.log("Payload:", payload);
     console.log("=====================================");
 
-    // Extract & normalize fields
+    // Extract body fields safely
     const {
       PropertyId,
       UserId: sytemapUserId,
@@ -20,35 +20,41 @@ const payment = async (req, res, next) => {
       AmountPaid,
       PaymentCurrency,
       PaymentMode,
-    } = payload;
+    } = payload || {};
 
-    // Convert PropertyId to number always
+    // Convert to number safely
     const normalizedPropertyId = Number(PropertyId);
 
-    // 🔍 Validate required fields
+    // Validate essential fields
     if (!normalizedPropertyId || !sytemapUserId || !TransactionId) {
-      return next(new AppError("Invalid payload", 400));
+      console.log("⚠️ Invalid payload → Missing essential fields");
+      return res.status(200).json({ status: "ok" });
     }
 
-    // 🔍 Ensure user exists
-    const user = await userModel.findOne({ sytemapUserId });
-    if (!user) return next(new AppError("UserId does not exist", 400));
+    // Ensure user exists
+    const user = await userModel.findOne({ sytemapUserId: sytemapUserId });
+    if (!user) {
+      console.log("⚠️ User not found → Ignoring webhook");
+      return res.status(200).json({ status: "ok" });
+    }
 
-    // ---------------------------------------------------
-    // 🔥 FAST: Find parent payment record
-    // ---------------------------------------------------
+    // Look for existing (user + property) payment record
     let paymentDoc = await paymentModel.findOne({
-      sytemapUserId,
+      sytemapUserId: sytemapUserId,
       PropertyId: normalizedPropertyId,
     });
 
-    // ===================================================
-    //   CASE 1: Parent record exists → Add new payment
-    // ===================================================
+    // ============================================
+    // CASE 1: Parent record exists → Append payment
+    // ============================================
     if (paymentDoc) {
       console.log("➡ Updating existing payment entry...");
 
-      // Prevent duplicate transaction inside array
+      // Ensure payments array exists
+      if (!Array.isArray(paymentDoc.payments)) {
+        paymentDoc.payments = [];
+      }
+
       const alreadyExists = paymentDoc.payments.some(
         (p) => p.TransactionId === TransactionId
       );
@@ -67,9 +73,9 @@ const payment = async (req, res, next) => {
       return res.status(200).json({ status: "ok", updated: true });
     }
 
-    // ===================================================
-    //   CASE 2: Create a new parent payment document
-    // ===================================================
+    // ============================================
+    // CASE 2: Create new parent payment entry
+    // ============================================
     console.log("🆕 Creating new payment record...");
 
     await paymentModel.create({
@@ -77,13 +83,13 @@ const payment = async (req, res, next) => {
       PropertyName: payload.PropertyName,
       PropertyId: normalizedPropertyId,
       EstateName: payload.EstateName,
-      EstateId: payload.EstateId,
+      EstateId: Number(payload.EstateId),
       AmountPending: payload.AmountPending,
       PropertyPrice: payload.PropertyPrice,
       NumberOfProperty: payload.NumberOfProperty,
       AccountStatus: payload.AccountStatus,
       PaymentType: payload.PaymentType,
-      sytemapUserId,
+      sytemapUserId: sytemapUserId,
       payments: [
         {
           TransactionId,
@@ -94,13 +100,34 @@ const payment = async (req, res, next) => {
       ],
     });
 
+    // Update user step if estate exists
+    const findEstate = await estateModel.findOne({
+      estateName: payload.EstateName,
+    });
+
+    if (!findEstate) {
+      console.log("⚠️ Estate not found → Skipping step update");
+      return res.status(200).json({ status: "ok", created: true });
+    }
+
+    const estateId = findEstate._id;
+
+    const foundCurrent = user.currentSteps.find(
+      (item) => item.estateId.toString() === estateId.toString()
+    );
+
+    if (foundCurrent) {
+      foundCurrent.status = "active";
+      await user.save();
+    }
+
     return res.status(200).json({ status: "ok", created: true });
   } catch (error) {
     console.error("SYTEMAP Payment Webhook Error:", error);
 
-    // Duplicate parent record (unique index)
+    // Handle unique index duplicate (if it exists)
     if (error.code === 11000) {
-      console.log("⚠ Duplicate (user, property) parent record detected");
+      console.log("⚠ Duplicate (user + property) parent record");
       return res.status(200).json({ status: "duplicate_parent_record" });
     }
 

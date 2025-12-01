@@ -17,16 +17,18 @@ const signup = async (req, res, next) => {
     const sytemapUserId = payload.BaseUserId || payload.UserId;
 
     if (!email || !sytemapUserId) {
-      return next(new AppError("Invalid signup payload", 400));
+      console.log("⚠️ Invalid signup payload → Ignoring webhook");
+      return res.status(200).json({ status: "ok" });
     }
 
     // Fetch estates once (fast)
     const estates = await estateModel.find().select("_id estateName");
 
     if (!estates.length) {
-      return next(
-        new AppError("No estate created at this time, try again later", 404)
+      console.log(
+        "⚠️ No estate created at this time, try again later → Ignoring webhook"
       );
+      return res.status(200).json({ status: "ok" });
     }
 
     // ====================================================

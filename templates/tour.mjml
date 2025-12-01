@@ -11,7 +11,7 @@
       <mj-all font-family="Inter, Arial, sans-serif" />
       <mj-text color="#1f2937" font-size="16px" line-height="1.7" />
       <mj-button
-        background-color="#171817ff"
+        background-color="#171817"
         color="#ffffff"
         font-size="16px"
         border-radius="8px"
@@ -21,13 +21,8 @@
     </mj-attributes>
 
     <mj-style inline="inline">
-      .footer-link a {
-        color: #0c100eff !important;
-        text-decoration: none;
-      }
-      .footer-link a:hover {
-        text-decoration: underline;
-      }
+      .footer-link a { color: #0c100e !important; text-decoration: none; }
+      .footer-link a:hover { text-decoration: underline; }
     </mj-style>
   </mj-head>
 
@@ -62,7 +57,7 @@
 
         <mj-text
           align="center"
-          color="#f3f6f4ff"
+          color="#f3f6f4"
           font-size="15px"
           padding-top="10px"
         >
