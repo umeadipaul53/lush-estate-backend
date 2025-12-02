@@ -104,8 +104,9 @@ const startJourney = async (req, res, next) => {
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: isProduction,
+      secure: isProduction, // must be true on Vercel
       sameSite: isProduction ? "None" : "Lax",
+      partitioned: isProduction ? true : false, // ⭐ REQUIRED ⭐
       path: "/",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
