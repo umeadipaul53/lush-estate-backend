@@ -1,7 +1,7 @@
 const AppError = require("../../utils/AppError");
 const userModel = require("../../model/userModel");
 const paymentModel = require("../../model/paymentModel");
-const estateModel = require("../../model/estateModel");
+const { estateModel } = require("../../model/estateModel");
 
 const payment = async (req, res, next) => {
   try {
