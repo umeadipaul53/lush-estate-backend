@@ -133,7 +133,12 @@ const payment = async (req, res, next) => {
       return res.status(200).json({ status: "duplicate_parent_record" });
     }
 
-    return next(new AppError("Internal Server Error", 500));
+    return res.status(200).json({
+      status: "error",
+      message: error.message,
+      // stack: error.stack, // Optional: comment this out if too sensitive
+      raw: error.toString(),
+    });
   }
 };
 

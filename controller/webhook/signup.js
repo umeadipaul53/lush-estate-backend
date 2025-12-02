@@ -93,7 +93,14 @@ const signup = async (req, res, next) => {
     return res.status(200).json({ status: "ok", updated: true });
   } catch (error) {
     console.error("SYTEMAP Signup Webhook Error:", error);
-    return next(new AppError("Internal Server Error", 500));
+
+    // Sytemap requires the REAL error to be returned
+    return res.status(200).json({
+      status: "error",
+      message: error.message,
+      // stack: error.stack, // Optional: comment this out if too sensitive
+      raw: error.toString(),
+    });
   }
 };
 

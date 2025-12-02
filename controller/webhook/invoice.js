@@ -52,9 +52,15 @@ const invoice = async (req, res, next) => {
     // SYTEMAP must always get 200 OK
     return res.status(200).json({ status: "ok" });
   } catch (error) {
-    console.error("❌ SYTEMAP Invoice Webhook Error:", error);
-    // Still return 200 because webhooks should not be retried due to server-side error
-    return res.status(200).json({ status: "ok" });
+    console.error("SYTEMAP Signup Webhook Error:", error);
+
+    // Sytemap requires the REAL error to be returned
+    return res.status(200).json({
+      status: "error",
+      message: error.message,
+      // stack: error.stack, // Optional: comment this out if too sensitive
+      raw: error.toString(),
+    });
   }
 };
 
