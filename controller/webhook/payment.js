@@ -67,6 +67,8 @@ const payment = async (req, res, next) => {
           PaymentMode,
         });
 
+        paymentDoc.AmountPending = payload.AmountPending;
+
         await paymentDoc.save();
       }
 
