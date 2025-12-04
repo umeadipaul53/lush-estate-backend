@@ -145,7 +145,7 @@ const getAllEstates = async (req, res, next) => {
     res.status(200).json({
       status: "success",
       message: estates.length > 0 ? "All estates" : "No estates found",
-      count: estates.length,
+      count: totalDocuments,
       pagination: {
         currentPage: numericPage,
         totalPages,
