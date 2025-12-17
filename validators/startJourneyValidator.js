@@ -11,9 +11,14 @@ const startJourneyValidator = Joi.object({
   name: Joi.string().allow("").optional(),
 
   phone: Joi.string()
-    .pattern(/^[0-9]{7,15}$/)
+    .custom((value, helpers) => {
+      const cleaned = value.replace(/\D/g, "");
+      if (cleaned.length < 7 || cleaned.length > 15) {
+        return helpers.error("any.invalid");
+      }
+      return cleaned;
+    })
     .message("Phone must be 7-15 digits")
-    .allow("")
     .optional(),
 });
 
